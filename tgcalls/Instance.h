@@ -120,6 +120,7 @@ struct Config {
     bool enableHighBitrateVideo = false;
     std::vector<std::string> preferredVideoCodecs;
     ProtocolVersion protocolVersion = ProtocolVersion::V0;
+    std::string customParameters = "";
 };
 
 struct EncryptionKey {

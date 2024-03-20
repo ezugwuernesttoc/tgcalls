@@ -929,6 +929,14 @@ public:
             "WebRTC-Audio-iOS-Holding/Enabled/"
             "WebRTC-IceFieldTrials/skip_relay_to_non_relay_connections:true/"
         );
+        
+        if (!descriptor.config.customParameters.empty()) {
+            std::string parsingError;
+            auto customParametersJson = json11::Json::parse(descriptor.config.customParameters, parsingError);
+            if (customParametersJson.is_object()) {
+                _customParameters = customParametersJson.object_items();
+            }
+        }
     }
 
     ~InstanceV2ImplInternal() {
@@ -1786,6 +1794,7 @@ public:
                     RTC_LOG(LS_ERROR) << "Could not parse candidate: " << candidate.sdpString;
                     continue;
                 }
+                    
                 _pendingIceCandidates.push_back(parseCandidate.candidate());
             }
 
@@ -1880,6 +1889,12 @@ public:
         record.route = state.route;
         record.connection = state.connection;
         record.isFailed = state.isFailed;
+        
+        if (state.isReadyToSendData && !_hasBeenConnected) {
+            _hasBeenConnected = true;
+            auto connectionTimeMs = rtc::TimeMillis() - _startTimestamp;
+            RTC_LOG(LS_INFO) << "Connected in " << connectionTimeMs << " ms";
+        }
 
         if (!_currentNetworkStateLogRecord || !(_currentNetworkStateLogRecord.value() == record)) {
             _currentNetworkStateLogRecord = record;
@@ -2220,11 +2235,13 @@ private:
     std::function<webrtc::scoped_refptr<webrtc::AudioDeviceModule>(webrtc::TaskQueueFactory*)> _createAudioDeviceModule;
     MediaDevicesConfig _devicesConfig;
     FilePath _statsLogPath;
+    std::map<std::string, json11::Json> _customParameters;
 
     std::unique_ptr<SignalingConnection> _signalingConnection;
     std::unique_ptr<EncryptedConnection> _signalingEncryptedConnection;
 
     int64_t _startTimestamp = 0;
+    bool _hasBeenConnected = false;
 
     absl::optional<NetworkStateLogRecord> _currentNetworkStateLogRecord;
     std::vector<StateLogRecord<NetworkStateLogRecord>> _networkStateLogRecords;
