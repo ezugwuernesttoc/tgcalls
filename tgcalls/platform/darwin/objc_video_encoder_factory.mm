@@ -33,6 +33,7 @@
 #include "modules/video_coding/include/video_error_codes.h"
 #include "rtc_base/logging.h"
 #include "sdk/objc/native/src/objc_video_frame.h"
+#include "api/transport/field_trial_based_config.h"
 
 #include "CustomSimulcastEncoderAdapter.h"
 
@@ -223,12 +224,12 @@ std::vector<SdpVideoFormat> SimulcastVideoEncoderFactory::GetImplementations() c
 std::unique_ptr<VideoEncoder> SimulcastVideoEncoderFactory::CreateVideoEncoder(const SdpVideoFormat& format) {
 #ifndef __aarch64__
 #ifdef WEBRTC_MAC
-    return std::make_unique<webrtc::CustomSimulcastEncoderAdapter>(_softwareFactory.get(), _softwareFactory.get(), format);
+    return std::make_unique<webrtc::CustomSimulcastEncoderAdapter>(_softwareFactory.get(), _softwareFactory.get(), format, webrtc::FieldTrialBasedConfig());
 #else
-    return std::make_unique<webrtc::CustomSimulcastEncoderAdapter>(_hardwareFactory.get(), _hardwareFactory.get(), format);
+    return std::make_unique<webrtc::CustomSimulcastEncoderAdapter>(_hardwareFactory.get(), _hardwareFactory.get(), format, webrtc::FieldTrialBasedConfig());
 #endif //WEBRTC_MAC
 #else
-    return std::make_unique<webrtc::CustomSimulcastEncoderAdapter>(_hardwareFactory.get(), _hardwareFactory.get(), format);
+    return std::make_unique<webrtc::CustomSimulcastEncoderAdapter>(_hardwareFactory.get(), _hardwareFactory.get(), format, webrtc::FieldTrialBasedConfig());
 #endif //__aarch64__
 }
 
